@@ -1598,16 +1598,17 @@ def test_clean_payment_without_payment_associated_to_order(
 
 
 def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
-    message = "The payment did a oopsie!"
+    message = "The payment did an oopsie!"
     assert not OrderEvent.objects.exists()
 
     def _test_operation():
         raise PaymentError(message)
 
-    with pytest.raises(ValidationError, message={"payment": message}):
+    with pytest.raises(ValidationError):
         try_payment_action(
             order=order, user=staff_user, payment=payment_dummy, func=_test_operation
         )
+        pytest.fail(message)
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
     assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
